@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__ — First Principles Analysis Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1d1d1f; --ink-2: #333336; --ink-3: #56565c; --ink-4: #86868b; --ink-5: #afafb4;
+  --ink-6: #d2d2d7; --ink-7: #e8e8ed; --ink-8: #f2f2f5;
+  --bg: #f5f5f7; --white: #ffffff;
+  --gold: #b8962e; --gold-bg: rgba(184,150,46,0.06); --gold-border: rgba(184,150,46,0.22);
+  --blue: #0066cc; --blue-bg: rgba(0,102,204,0.05);
+  --green: #248a3d; --green-bg: rgba(36,138,61,0.06);
+  --red: #d30f45; --red-bg: rgba(211,15,69,0.05);
+  --orange: #c45d09; --orange-bg: rgba(196,93,9,0.06);
+  --body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", "Consolas", monospace;
+  --max-w: 860px; --gutter: 2.5rem;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;zoom:1.1}
+body{font-family:var(--body);font-size:15px;line-height:1.8;color:var(--ink-2);background:var(--bg)}
+
+/* ── Tags ── */
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:3px;font-weight:500;white-space:nowrap;vertical-align:middle}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-orange{background:var(--orange-bg);color:var(--orange)}
+.tag-red{background:var(--red-bg);color:var(--red)}
+.tag-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-border)}
+
+/* ── Cover ── */
+.cover{padding:56px var(--gutter) 44px;background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 15% 85%,rgba(184,150,46,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 15%,rgba(61,107,153,.05) 0%,transparent 50%);pointer-events:none}
+.cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent);opacity:.35}
+.cover-inner{position:relative;max-width:var(--max-w);margin:0 auto;z-index:1}
+.cover-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0;animation:up .6s .15s forwards}
+.cover-eyebrow::before{content:'';width:24px;height:1px;background:var(--gold)}
+.cover-h1{font-size:28px;font-weight:700;line-height:1.4;letter-spacing:-.01em;opacity:0;animation:up .6s .3s forwards}
+.cover-desc{font-size:15px;font-weight:400;color:rgba(255,255,255,.5);margin-top:14px;opacity:0;animation:up .6s .45s forwards}
+.cover-meta{display:flex;gap:36px;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);opacity:0;animation:up .6s .6s forwards}
+.cover-meta dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:3px}
+.cover-meta dd{font-size:14px;color:rgba(255,255,255,.7);font-weight:500}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Topbar ── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(245,245,247,.88);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--ink-6)}
+.topbar-inner{max-width:var(--max-w);margin:0 auto;display:flex;padding:0 var(--gutter)}
+.topbar button{background:none;border:none;font-family:var(--body);font-size:14px;font-weight:500;color:var(--ink-4);padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.topbar button:hover{color:var(--ink-2)}
+.topbar button.active{color:var(--ink);border-bottom-color:var(--gold)}
+
+/* ── Pages ── */
+.page{display:none}.page.active{display:block}
+.wrap{max-width:var(--max-w);margin:0 auto;padding:0 var(--gutter)}
+.section{padding:48px 0}.section+.section{border-top:1px solid var(--ink-7)}
+
+/* ── Section heading ── */
+.sh-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.sh-title{font-size:22px;font-weight:700;color:var(--ink);line-height:1.35;margin-bottom:6px;letter-spacing:-.01em}
+.sh-rule{width:32px;height:2px;background:var(--gold);margin:16px 0 20px;opacity:.5}
+.sh-lead{font-size:15px;color:var(--ink-3);line-height:1.8;margin-bottom:24px}
+
+/* ── Report page content (injected as rendered HTML) ── */
+.report-content{font-size:15px;color:var(--ink-2);line-height:1.8}
+.report-content h3{font-size:18px;font-weight:700;color:var(--ink);margin:32px 0 8px}
+.report-content h4{font-size:15px;font-weight:600;color:var(--ink);margin:24px 0 6px}
+.report-content p{margin:8px 0}
+.report-content strong{color:var(--ink);font-weight:600}
+.report-content ul,.report-content ol{padding-left:20px;margin:8px 0}
+.report-content li{margin-bottom:4px}
+.report-content code{background:var(--ink-8);color:var(--ink-2);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:.9em}
+.report-content pre{background:var(--ink);color:#c8d0d8;padding:16px 20px;border-radius:8px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow-x:auto;margin:12px 0}
+.report-content table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;border:1px solid var(--ink-6);border-radius:8px;overflow:hidden}
+.report-content th{background:var(--ink-8);color:var(--ink-3);font-size:12px;font-weight:500;padding:10px 14px;border-bottom:1px solid var(--ink-6);text-align:left}
+.report-content td{padding:10px 14px;border-bottom:1px solid var(--ink-7);color:var(--ink-2)}
+.report-content tr:last-child td{border-bottom:none}
+.report-content hr{border:none;border-top:1px solid var(--ink-7);margin:24px 0}
+.report-content blockquote{border-left:3px solid var(--gold);padding:16px 20px;background:var(--white);border-radius:0 8px 8px 0;margin:12px 0}
+
+/* ── Process page ── */
+.stat-row{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.stat-box{text-align:center;padding:12px 16px;background:var(--white);border:1px solid var(--ink-6);border-radius:8px;min-width:80px}
+.stat-num{font-size:24px;font-weight:700;color:var(--ink);line-height:1}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);margin-top:4px}
+
+.pipe-nav{display:flex;gap:0;margin-bottom:24px;overflow-x:auto;border-bottom:1px solid var(--ink-7)}
+.pipe-btn{background:none;border:none;font-family:var(--body);font-size:13px;font-weight:500;color:var(--ink-4);padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.pipe-btn:hover{color:var(--ink-2)}
+.pipe-btn.active{color:var(--ink);border-bottom-color:var(--gold)}
+.pipe-btn .sub{font-family:var(--mono);font-size:10px;color:var(--ink-5);display:block;margin-top:1px}
+.stage-panel{display:none}.stage-panel.active{display:block}
+.stage-desc{font-size:13px;color:var(--ink-4);margin-bottom:16px}
+
+.doc-nav{display:flex;gap:0;border-bottom:1px solid var(--ink-7);margin-bottom:16px;overflow-x:auto}
+.doc-nav-btn{background:none;border:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink-4);padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.doc-nav-btn:hover{color:var(--ink-2)}
+.doc-nav-btn.active{color:var(--ink);border-bottom-color:var(--gold)}
+.doc-panel{display:none}.doc-panel.active{display:block}
+
+.doc-card{background:var(--white);border:1px solid var(--ink-6);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.doc-head{padding:14px 20px 10px}
+.doc-title{font-size:15px;font-weight:600;color:var(--ink);line-height:1.4;margin-bottom:4px}
+.doc-meta{display:flex;align-items:center;gap:10px}
+.doc-lines{font-family:var(--mono);font-size:11px;color:var(--ink-5)}
+.doc-body{padding:0 20px 20px;font-size:14px;color:var(--ink-3);line-height:1.75}
+
+/* ── Markdown rendered ── */
+.md-h1{font-size:18px;font-weight:700;color:var(--ink);margin:20px 0 8px;padding:0 20px}
+.md-h2{font-size:16px;font-weight:600;color:var(--ink);margin:18px 0 6px;padding:0 20px;border-bottom:1px solid var(--ink-7);padding-bottom:6px}
+.md-h3{font-size:14px;font-weight:600;color:var(--ink-2);margin:14px 0 4px;padding:0 20px}
+.md-h4{font-size:13px;font-weight:600;color:var(--ink-3);margin:12px 0 4px;padding:0 20px}
+.md-p{font-size:14px;color:var(--ink-3);line-height:1.75;margin:4px 0;padding:0 20px}
+.md-p strong{color:var(--ink);font-weight:600}
+.md-ul,.md-ol{padding:0 20px 0 40px;margin:4px 0;font-size:14px;color:var(--ink-3);line-height:1.75}
+.md-ul li,.md-ol li{margin-bottom:2px}
+.md-code{display:block;background:var(--ink);color:#c8d0d8;padding:14px 18px;margin:8px 20px;border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.md-inline-code{background:var(--ink-8);color:var(--ink-2);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:.9em}
+.md-tbl-wrap{overflow-x:auto;margin:8px 20px;border:1px solid var(--ink-6);border-radius:6px}
+.md-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.md-tbl th{background:var(--ink-8);color:var(--ink-3);font-size:12px;font-weight:500;padding:8px 12px;border-bottom:1px solid var(--ink-6);text-align:left}
+.md-tbl td{padding:7px 12px;border-bottom:1px solid var(--ink-7);color:var(--ink-3)}
+.md-tbl tr:last-child td{border-bottom:none}
+.md-tbl td strong{color:var(--ink)}
+.md-hr{border:none;border-top:1px solid var(--ink-7);margin:16px 20px}
+.md-spacer{height:6px}
+
+/* ── Session list ── */
+.session-card{display:flex;justify-content:space-between;align-items:center;background:var(--white);border:1px solid var(--ink-6);border-radius:8px;padding:18px 22px;margin-bottom:10px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+.session-card:hover{border-color:var(--gold-border);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.session-card.current{border-left:3px solid var(--gold)}
+.session-title{font-size:15px;font-weight:600;color:var(--ink);line-height:1.4;margin-bottom:4px}
+.session-meta-row{display:flex;gap:16px;font-size:13px;color:var(--ink-4)}
+.session-arrow{color:var(--ink-5);font-size:14px;flex-shrink:0}
+.session-current-badge{font-family:var(--mono);font-size:10px;color:var(--gold);background:var(--gold-bg);padding:2px 8px;border-radius:3px;margin-left:8px}
+
+/* ── Footer ── */
+.footer{max-width:var(--max-w);margin:0 auto;padding:24px var(--gutter) 40px;border-top:1px solid var(--ink-7);display:flex;justify-content:space-between;font-size:12px;color:var(--ink-4)}
+
+@media(max-width:680px){
+  :root{--gutter:1.2rem}
+  .cover{padding:36px var(--gutter) 28px}
+  .cover-h1{font-size:22px}
+  .cover-meta{flex-direction:column;gap:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- Cover: __META__ fields injected -->
+<header class="cover">
+  <div class="cover-inner">
+    <div class="cover-eyebrow"><span></span>First Principles Analysis Report</div>
+    <h1 class="cover-h1">__TITLE__</h1>
+    <p class="cover-desc">__DESC__</p>
+    <dl class="cover-meta">
+      <div><dt>Date</dt><dd>__DATE__</dd></div>
+      <div><dt>Method</dt><dd>__METHOD__</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <button class="active" data-page="report">报告</button>
+    <button data-page="process">分析过程</button>
+    <button data-page="history" style="margin-left:auto">所有报告</button>
+  </div>
+</nav>
+
+<!-- PAGE 1: Report (rendered HTML from conclusion, injected by generator) -->
+<div class="page active" id="page-report">
+<div class="wrap">
+  <div class="section report-content" style="border-top:none">
+__REPORT_HTML__
+  </div>
+</div>
+</div>
+
+<!-- PAGE 2: Process (auto-rendered from embedded docs JSON) -->
+<div class="page" id="page-process">
+<div class="wrap">
+  <div class="section" style="border-top:none">
+    <div class="sh-eyebrow">Analysis Pipeline</div>
+    <h2 class="sh-title">分析过程</h2>
+    <div class="sh-rule"></div>
+    <div class="stat-row" id="statsRow"></div>
+    <div class="pipe-nav" id="pipeNav"></div>
+    <div id="stageArea"></div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE 3: All reports -->
+<div class="page" id="page-history">
+<div class="wrap">
+  <div class="section" style="border-top:none">
+    <div class="sh-eyebrow">Report Archive</div>
+    <h2 class="sh-title">所有报告</h2>
+    <div class="sh-rule"></div>
+    <div id="sessionList"></div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <span style="font-weight:600;color:var(--ink-3)">First Principles</span>
+  <span>Generated by Multi-Agent Analysis System</span>
+</footer>
+
+<!-- Data: injected by generator script -->
+<script id="docs-json" type="application/json">__DOCS_JSON__</script>
+<script id="sessions-json" type="application/json">__SESSIONS_JSON__</script>
+<script id="stages-json" type="application/json">__STAGES_JSON__</script>
+<script id="labels-json" type="application/json">__LABELS_JSON__</script>
+
+<script>
+/* ═══════ LOAD DATA ═══════ */
+const DOCS = JSON.parse(document.getElementById('docs-json').textContent);
+const SESSIONS = JSON.parse(document.getElementById('sessions-json').textContent);
+const STAGES = JSON.parse(document.getElementById('stages-json').textContent);
+const DOC_LABELS = JSON.parse(document.getElementById('labels-json').textContent);
+
+/* ═══════ MD → HTML ═══════ */
+function md2html(raw) {
+  let html = '';
+  const lines = raw.split('\n');
+  let inCode = false, inTable = false, inList = false;
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    if (line.startsWith('```')) {
+      if (inCode) { html += '</code></pre>'; inCode = false; } else { html += '<pre class="md-code"><code>'; inCode = true; }
+      continue;
+    }
+    if (inCode) { html += esc(line) + '\n'; continue; }
+    if (inList && !/^\s*[-*\d]/.test(line) && line.trim() !== '') {
+      html += inList === 'ul' ? '</ul>' : '</ol>'; inList = false;
+    }
+    if (/^#{1,4}\s/.test(line)) {
+      if (inTable) { html += '</tbody></table></div>'; inTable = false; }
+      const lvl = line.match(/^(#+)/)[1].length;
+      html += '<h' + (lvl+1) + ' class="md-h' + lvl + '">' + inline(line.replace(/^#+\s*/, '')) + '</h' + (lvl+1) + '>';
+      continue;
+    }
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      if (!inTable) {
+        html += '<div class="md-tbl-wrap"><table class="md-tbl"><thead><tr>' + cells.map(c => '<th>' + inline(c) + '</th>').join('') + '</tr></thead><tbody>';
+        inTable = true;
+        if (i + 1 < lines.length && /^\|[\s-:|]+\|/.test(lines[i+1])) i++;
+        continue;
+      }
+      html += '<tr>' + cells.map(c => '<td>' + inline(c) + '</td>').join('') + '</tr>';
+      continue;
+    }
+    if (inTable && !line.includes('|')) { html += '</tbody></table></div>'; inTable = false; }
+    if (/^\s*[-*]\s/.test(line)) {
+      if (!inList || inList !== 'ul') { if (inList) html += '</ol>'; html += '<ul class="md-ul">'; inList = 'ul'; }
+      html += '<li>' + inline(line.replace(/^\s*[-*]\s*/, '')) + '</li>'; continue;
+    }
+    if (/^\s*\d+\.\s/.test(line)) {
+      if (!inList || inList !== 'ol') { if (inList) html += '</ul>'; html += '<ol class="md-ol">'; inList = 'ol'; }
+      html += '<li>' + inline(line.replace(/^\s*\d+\.\s*/, '')) + '</li>'; continue;
+    }
+    if (/^---+$/.test(line.trim())) { html += '<hr class="md-hr">'; continue; }
+    if (line.trim() === '') { html += '<div class="md-spacer"></div>'; continue; }
+    html += '<p class="md-p">' + inline(line) + '</p>';
+  }
+  if (inCode) html += '</code></pre>';
+  if (inTable) html += '</tbody></table></div>';
+  if (inList) html += (inList === 'ul' ? '</ul>' : '</ol>');
+  return html;
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function inline(s) {
+  return esc(s)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color:var(--blue)">$1</a>');
+}
+function stripTitle(c) {
+  const lines = c.split('\n'); let s = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^#\s/.test(lines[i])) { s = i + 1; continue; }
+    if (lines[i].trim() === '' && i === s) { s = i + 1; continue; }
+    break;
+  }
+  return lines.slice(s).join('\n');
+}
+function docTab(id) { return DOC_LABELS[id]?.tab || id; }
+function docTitle(id) { return DOC_LABELS[id]?.title || id; }
+
+/* ═══════ PROCESS PAGE ═══════ */
+function renderProcess() {
+  // Stats
+  const statsEl = document.getElementById('statsRow');
+  const totalLines = DOCS.reduce((s, d) => s + d.lines, 0);
+  statsEl.innerHTML = [
+    { n: DOCS.length, l: 'Documents' },
+    { n: STAGES.length, l: 'Stages' },
+    { n: '~' + totalLines, l: 'Lines' },
+  ].map(s => '<div class="stat-box"><div class="stat-num">' + s.n + '</div><div class="stat-label">' + s.l + '</div></div>').join('');
+
+  const nav = document.getElementById('pipeNav');
+  const area = document.getElementById('stageArea');
+  const groups = {};
+  STAGES.forEach(s => groups[s.id] = []);
+  DOCS.forEach(d => { if (groups[d.stage]) groups[d.stage].push(d); });
+
+  nav.innerHTML = STAGES.map((s, i) => {
+    const count = groups[s.id].length;
+    return '<button class="pipe-btn ' + (i===0?'active':'') + '" data-s="' + s.id + '">' +
+      esc(s.label) + '<span class="sub">' + count + ' doc' + (count>1?'s':'') + '</span></button>';
+  }).join('');
+
+  area.innerHTML = STAGES.map((s, i) => {
+    const docs = groups[s.id];
+    let inner = '';
+    if (docs.length === 1) {
+      const d = docs[0];
+      inner = '<div class="doc-card"><div class="doc-head"><div class="doc-title">' + esc(docTitle(d.id)) +
+        '</div><div class="doc-meta"><span class="doc-lines">' + d.lines + ' lines · ' + d.file + '</span></div></div>' +
+        '<div class="doc-body">' + md2html(stripTitle(d.content)) + '</div></div>';
+    } else {
+      inner = '<div class="doc-nav">' + docs.map((d, di) =>
+        '<button class="doc-nav-btn ' + (di===0?'active':'') + '" data-dp="dp-' + d.id + '">' +
+        esc(docTab(d.id)) + '<span style="display:block;font-size:11px;color:var(--ink-5);margin-top:1px">' + d.lines + ' lines</span></button>'
+      ).join('') + '</div>';
+      inner += docs.map((d, di) =>
+        '<div class="doc-panel ' + (di===0?'active':'') + '" id="dp-' + d.id + '"><div class="doc-card"><div class="doc-head"><div class="doc-title">' +
+        esc(docTitle(d.id)) + '</div><div class="doc-meta"><span class="doc-lines">' + d.file + '</span></div></div>' +
+        '<div class="doc-body">' + md2html(stripTitle(d.content)) + '</div></div></div>'
+      ).join('');
+    }
+    return '<div class="stage-panel ' + (i===0?'active':'') + '" id="sp-' + s.id + '"><div class="stage-desc">' +
+      esc(s.desc || '') + '</div>' + inner + '</div>';
+  }).join('');
+
+  nav.addEventListener('click', e => {
+    const b = e.target.closest('.pipe-btn'); if (!b) return;
+    nav.querySelectorAll('.pipe-btn').forEach(x => x.classList.remove('active'));
+    area.querySelectorAll('.stage-panel').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('sp-' + b.dataset.s).classList.add('active');
+  });
+  area.addEventListener('click', e => {
+    const btn = e.target.closest('.doc-nav-btn'); if (!btn) return;
+    const navEl = btn.parentElement;
+    const container = navEl.parentElement;
+    navEl.querySelectorAll('.doc-nav-btn').forEach(x => x.classList.remove('active'));
+    container.querySelectorAll('.doc-panel').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.dp).classList.add('active');
+  });
+}
+
+/* ═══════ HISTORY PAGE ═══════ */
+function renderHistory() {
+  const el = document.getElementById('sessionList');
+  el.innerHTML = SESSIONS.map(s =>
+    '<a class="session-card' + (s.current ? ' current' : '') + '" href="' + esc(s.path) + '"><div>' +
+    '<div class="session-title">' + esc(s.title) + (s.current ? '<span class="session-current-badge">当前</span>' : '') + '</div>' +
+    '<div class="session-meta-row"><span>' + esc(s.date) + '</span><span>' + esc(s.method) + '</span></div>' +
+    '</div><div class="session-arrow">→</div></a>'
+  ).join('');
+}
+
+/* ═══════ TAB SWITCHING ═══════ */
+document.querySelector('.topbar').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  document.querySelectorAll('.topbar button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-' + btn.dataset.page).classList.add('active');
+  window.scrollTo({ top: 0 });
+});
+
+/* ═══════ INIT ═══════ */
+renderProcess();
+renderHistory();
+</script>
+</body>
+</html>
